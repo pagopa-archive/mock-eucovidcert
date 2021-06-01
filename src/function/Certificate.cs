@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System;
+using function.Models;
 
 namespace DGC.Function
 {
@@ -45,7 +46,7 @@ namespace DGC.Function
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            ILogger log)
+            ILogger log, ExecutionContext context)
         {
             log.LogInformation("C# HTTP trigger function processed Certificate/getCertificate/Run");
 
@@ -74,8 +75,12 @@ namespace DGC.Function
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             string auth_code = data?.auth_code;
             string fiscal_code = data?.fiscal_code;
-
-            var responseMessage = $"From body: auth_code [{auth_code}], fiscal_code [{fiscal_code}] ";
+            
+            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
+            var payloadsJson = File.ReadAllText(path);
+            var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
+            var random = new Random();
+            var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count)];
 
             var response = new ObjectResult(responseMessage);
             if (await _featureManagerSnapshot.IsEnabledAsync(ForceStatusCodeFeature) && int.TryParse(_configuration[ForceStatusCodeKey], out int statusCode))
