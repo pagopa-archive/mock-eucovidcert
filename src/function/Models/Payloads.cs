@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace function.Models
+namespace DGC.Models
 {
     public class Payloads
     {

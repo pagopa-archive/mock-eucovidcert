@@ -15,7 +15,7 @@ using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System;
-using function.Models;
+using DGC.Models;
 
 namespace DGC.Function
 {
@@ -79,7 +79,7 @@ namespace DGC.Function
             var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
             var payloadsJson = File.ReadAllText(path);
             var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
-            var random = new Random();
+            var random = new Random(DateTime.Now.Second);
             var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count)];
 
             var response = new ObjectResult(responseMessage);

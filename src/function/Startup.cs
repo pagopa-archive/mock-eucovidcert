@@ -11,7 +11,7 @@ namespace FunctionApp
     {
         public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
         {
-            Add Azure App Configuration as additional configuration source
+            // Add Azure App Configuration as additional configuration source
             builder.ConfigurationBuilder.AddAzureAppConfiguration(options =>
             {
                 options.Connect(Environment.GetEnvironmentVariable("ConfigConnectionString"))
