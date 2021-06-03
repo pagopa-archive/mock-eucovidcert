@@ -80,7 +80,7 @@ namespace DGC.Function
             var payloadsJson = File.ReadAllText(path);
             var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
             var random = new Random(DateTime.Now.Second);
-            var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count)];
+            var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
 
             var response = new ObjectResult(responseMessage);
             if (await _featureManagerSnapshot.IsEnabledAsync(ForceStatusCodeFeature) && int.TryParse(_configuration[ForceStatusCodeKey], out int statusCode))
