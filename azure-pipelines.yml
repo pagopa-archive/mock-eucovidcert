@@ -10,7 +10,8 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: dotnet build --configuration Release --output $(Pipeline.Workspace)/output
+- script: |
+    dotnet build src/function/DGC.Function.csproj --configuration Release --output $(Pipeline.Workspace)/output
   displayName: 'Run a one-line script'
 
 - task: AzureFunctionApp@1
