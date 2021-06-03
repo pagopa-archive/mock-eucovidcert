@@ -23,5 +23,4 @@ steps:
     package: '$(Pipeline.Workspace)/output'
     deploymentMethod: 'auto'
     deployToSlotOrASE: true
-    slotName: 'production'
   displayName: 'Deploy to production slot'
