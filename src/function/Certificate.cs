@@ -16,6 +16,8 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System;
 using DGC.Models;
+using Microsoft.Extensions.Primitives;
+using System.Security.Cryptography.X509Certificates;
 
 namespace DGC.Function
 {
@@ -25,7 +27,7 @@ namespace DGC.Function
         private const string ForceStatusCodeFeature = "ForceStatusCode";
         private const string ForceStatusCodeKey = "MockAPI:ForceStatusCode";
         private const string FailureRateKey = "MockAPI:FailureRate";
-
+        private const string CertificateThumbprintEnvVariable = "DGC_LOAD_TEST_CLIENT_KEY";
         private readonly IConfiguration _configuration;
         private readonly IConfigurationRefresher _configurationRefresher;
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
@@ -50,49 +52,73 @@ namespace DGC.Function
         {
             log.LogInformation("C# HTTP trigger function processed Certificate/getCertificate/Run");
 
-            // Signal to refresh the configuration if the registered key(s) is modified.
-            // This will be a no-op if the cache expiration time window is not reached.
-            // The configuration is refreshed asynchronously without blocking the execution of the current function.
-            await _configurationRefresher.TryRefreshAsync();
-
-            if (await _featureManagerSnapshot.IsEnabledAsync("Broken"))
+            //Mutual auth 
+            if (req.Headers.TryGetValue("X-ARR-ClientCert", out StringValues cert))
             {
-                var r = new Random(DateTime.Now.Second).Next(1,99);
 
-                if (r <= Convert.ToInt32(_configuration[FailureRateKey]))
+                byte[] clientCertBytes = Convert.FromBase64String(cert[0]);
+                X509Certificate2 clientCert = new X509Certificate2(clientCertBytes);
+
+                // Validate Thumbprint
+                if (!clientCert.Thumbprint.Equals(Environment.GetEnvironmentVariable(CertificateThumbprintEnvVariable), StringComparison.InvariantCultureIgnoreCase))
                 {
-                    throw new InvalidOperationException($"Broken feature flag is ON.");
+                    return new BadRequestObjectResult("A valid client certificate is not used");
                 }
-            }
 
-            if (int.TryParse(_configuration[AddedDelayConfigKey], out int addedDelay) && addedDelay > 0)
-            {
-                log.LogInformation($"{AddedDelayConfigKey}: {addedDelay}");
-                await Task.Delay(addedDelay);
-            }
+                // Validate NotBefore and NotAfter
+                if (DateTime.Compare(DateTime.UtcNow, clientCert.NotBefore) < 0
+                            || DateTime.Compare(DateTime.UtcNow, clientCert.NotAfter) > 0)
+                {
+                    return new BadRequestObjectResult("client certificate not in alllowed time interval");
+                }
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            string auth_code = data?.auth_code;
-            string fiscal_code = data?.fiscal_code;
-            
-            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
-            var payloadsJson = File.ReadAllText(path);
-            var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
-            var random = new Random(DateTime.Now.Second);
-            var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
+                // Add further validation of certificate if required.
 
-            var response = new ObjectResult(responseMessage);
-            if (await _featureManagerSnapshot.IsEnabledAsync(ForceStatusCodeFeature) && int.TryParse(_configuration[ForceStatusCodeKey], out int statusCode))
-            {
-                response.StatusCode = statusCode;
+                // Signal to refresh the configuration if the registered key(s) is modified.
+                // This will be a no-op if the cache expiration time window is not reached.
+                // The configuration is refreshed asynchronously without blocking the execution of the current function.
+                await _configurationRefresher.TryRefreshAsync();
+
+                if (await _featureManagerSnapshot.IsEnabledAsync("Broken"))
+                {
+                    var r = new Random(DateTime.Now.Second).Next(1, 99);
+
+                    if (r <= Convert.ToInt32(_configuration[FailureRateKey]))
+                    {
+                        throw new InvalidOperationException($"Broken feature flag is ON.");
+                    }
+                }
+
+                if (int.TryParse(_configuration[AddedDelayConfigKey], out int addedDelay) && addedDelay > 0)
+                {
+                    log.LogInformation($"{AddedDelayConfigKey}: {addedDelay}");
+                    await Task.Delay(addedDelay);
+                }
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic data = JsonConvert.DeserializeObject(requestBody);
+                string auth_code = data?.auth_code;
+                string fiscal_code = data?.fiscal_code;
+
+                var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
+                var payloadsJson = File.ReadAllText(path);
+                var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
+                var random = new Random(DateTime.Now.Second);
+                var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
+
+                var response = new ObjectResult(responseMessage);
+                if (await _featureManagerSnapshot.IsEnabledAsync(ForceStatusCodeFeature) && int.TryParse(_configuration[ForceStatusCodeKey], out int statusCode))
+                {
+                    response.StatusCode = statusCode;
+                }
+                else
+                {
+                    response.StatusCode = 200;
+                }
+                return response;
             }
-            else
-            {
-                response.StatusCode = 200;
-            }
-            return response;
+            return new BadRequestObjectResult("A valid client certificate is not found");
         }
+
     }
 }
-
