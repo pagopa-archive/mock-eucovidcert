@@ -1,0 +1,26 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: dotnet build --configuration Release --output $(Pipeline.Workspace)/output
+  displayName: 'Run a one-line script'
+
+- task: AzureFunctionApp@1
+  inputs:
+    azureSubscription: '$(AZURE_SUBSCRIPTION)'
+    resourceGroupName: 'io-p-rg-eucovidcert'
+    appType: 'functionApp'
+    appName: 'io-p-fn3-mockdgc'
+    package: '$(Pipeline.Workspace)/output'
+    deploymentMethod: 'auto'
+    deployToSlotOrASE: true
+    slotName: 'production'
+  displayName: 'Deploy to production slot'
