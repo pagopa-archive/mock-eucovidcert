@@ -47,7 +47,7 @@ namespace DGC.Function
         [OpenApiParameter(name: "fiscal_code", Required = true, Type = typeof(string), Description = "The **fiscal_code** parameter")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/certificate/citizen/io")] HttpRequest req,
             ILogger log, ExecutionContext context)
         {
             log.LogInformation("C# HTTP trigger function processed Certificate/getCertificate/Run");
