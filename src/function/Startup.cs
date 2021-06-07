@@ -28,7 +28,6 @@ namespace FunctionApp
             // Make Azure App Configuration services and feature manager available through dependency injection
             builder.Services.AddAzureAppConfiguration();
             builder.Services.AddFeatureManagement();
-            builder.Services.AddTransient<CertificateAuthService>();
         }
     }
 }
