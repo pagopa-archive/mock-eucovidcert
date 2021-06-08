@@ -1,13 +1,13 @@
 {
   "payloads": [
     {
-      "data": 1234567890,
+      "data": 2147483647,
       "keyDuplicate": "qwertyuiop1",
       "spanID": "asdfghjkl1",
       "traceID": "zxcvbnm1"
     },
     {
-      "data": 9876543210,
+      "data": 1000000000,
       "keyDuplicate": "qwertyuiop2",
       "spanID": "asdfghjkl2",
       "traceID": "zxcvbnm2"
