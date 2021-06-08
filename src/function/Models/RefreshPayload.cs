@@ -5,10 +5,10 @@ namespace DGC.Models
     public class RefreshPayload
     {
 
-        [JsonProperty("data")]
+        [JsonProperty("data", NullValueHandling = NullValueHandling.Ignore)]
         public int data { get; set; }
 
-        [JsonProperty("error")]
+        [JsonProperty("error", NullValueHandling = NullValueHandling.Ignore)]
         public ErrorResponseDTO error { get; set; }
 
         [JsonProperty("keyDuplicate")]

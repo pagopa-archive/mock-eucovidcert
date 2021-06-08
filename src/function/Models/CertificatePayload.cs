@@ -5,10 +5,10 @@ namespace DGC.Models
     public class CertificatePayload
     {
 
-        [JsonProperty("data")]
+        [JsonProperty("data", NullValueHandling = NullValueHandling.Ignore)]
         public QrCodeInfoDTO data { get; set; }
 
-        [JsonProperty("error")]
+        [JsonProperty("error", NullValueHandling = NullValueHandling.Ignore)]
         public ErrorResponseDTO error { get; set; }
 
         [JsonProperty("keyDuplicate")]
