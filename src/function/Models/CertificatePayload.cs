@@ -11,13 +11,13 @@ namespace DGC.Models
         [JsonProperty("error", NullValueHandling = NullValueHandling.Ignore)]
         public ErrorResponseDTO error { get; set; }
 
-        [JsonProperty("keyDuplicate")]
+        [JsonProperty("keyDuplicate",NullValueHandling = NullValueHandling.Ignore)]
         public string keyDuplicate { get; set; }
 
-        [JsonProperty("spanID")]
+        [JsonProperty("spanID",NullValueHandling = NullValueHandling.Ignore)]
         public string spanID { get; set; }
 
-        [JsonProperty("traceID")]
+        [JsonProperty("traceID",NullValueHandling = NullValueHandling.Ignore)]
         public string traceID { get; set; }
 
     }
