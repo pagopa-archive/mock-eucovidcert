@@ -42,8 +42,8 @@ namespace DGC.Function
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
 
         public Refresh(IFeatureManagerSnapshot featureManagerSnapshot,
-                           IConfiguration configuration,
-                           IConfigurationRefresherProvider refresherProvider)
+                       IConfiguration configuration,
+                       IConfigurationRefresherProvider refresherProvider)
         {
             _configuration = configuration;
             _featureManagerSnapshot = featureManagerSnapshot;
@@ -96,53 +96,52 @@ namespace DGC.Function
         private async Task<string> Init(HttpRequest req,
                                         ILogger log)
         {
+            if (!req.Headers.TryGetValue("X-ARR-ClientCert", out StringValues cert))
+                return "A valid client certificate is not found";
+
             //Mutual auth 
-            if (req.Headers.TryGetValue("X-ARR-ClientCert", out StringValues cert))
+            byte[] clientCertBytes = Convert.FromBase64String(cert[0]);
+            X509Certificate2 clientCert = new X509Certificate2(clientCertBytes);
+
+            // Validate Thumbprint
+            if (!clientCert.Thumbprint.Equals(Environment.GetEnvironmentVariable(CertificateThumbprintEnvVariable),
+                                              StringComparison.InvariantCultureIgnoreCase))
             {
-                byte[] clientCertBytes = Convert.FromBase64String(cert[0]);
-                X509Certificate2 clientCert = new X509Certificate2(clientCertBytes);
-
-                // Validate Thumbprint
-                if (!clientCert.Thumbprint.Equals(Environment.GetEnvironmentVariable(CertificateThumbprintEnvVariable),
-                                                  StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return "A valid client certificate is not used";
-                }
-
-                // Validate NotBefore and NotAfter
-                if (DateTime.Compare(DateTime.UtcNow, clientCert.NotBefore) < 0
-                    || DateTime.Compare(DateTime.UtcNow, clientCert.NotAfter) > 0)
-                {
-                    return "client certificate not in alllowed time interval";
-                }
-
-                // Add further validation of certificate if required.
-
-                // Signal to refresh the configuration if the registered key(s) is modified.
-                // This will be a no-op if the cache expiration time window is not reached.
-                // The configuration is refreshed asynchronously without blocking the execution of the current function.
-                await _configurationRefresher.TryRefreshAsync();
-
-                if (await _featureManagerSnapshot.IsEnabledAsync("Broken"))
-                {
-                    var r = new Random(DateTime.Now.Second).Next(1, 99);
-
-                    if (r <= Convert.ToInt32(_configuration[FailureRateKey]))
-                    {
-                        throw new InvalidOperationException($"Broken feature flag is ON.");
-                    }
-                }
-
-                if (int.TryParse(_configuration[AddedDelayConfigKey], out int addedDelay) && addedDelay > 0)
-                {
-                    log.LogInformation($"{AddedDelayConfigKey}: {addedDelay}");
-                    await Task.Delay(addedDelay);
-                }
-
-                return null;
+                return "A valid client certificate is not used";
             }
 
-            return "A valid client certificate is not found";
+            // Validate NotBefore and NotAfter
+            if (DateTime.Compare(DateTime.UtcNow, clientCert.NotBefore) < 0
+                || DateTime.Compare(DateTime.UtcNow, clientCert.NotAfter) > 0)
+            {
+                return "client certificate not in alllowed time interval";
+            }
+
+            // Add further validation of certificate if required.
+
+            // Signal to refresh the configuration if the registered key(s) is modified.
+            // This will be a no-op if the cache expiration time window is not reached.
+            // The configuration is refreshed asynchronously without blocking the execution of the current function.
+            await _configurationRefresher.TryRefreshAsync();
+
+            if (await _featureManagerSnapshot.IsEnabledAsync("Broken"))
+            {
+                var r = new Random(DateTime.Now.Second).Next(1, 99);
+
+                if (r <= Convert.ToInt32(_configuration[FailureRateKey]))
+                {
+                    throw new InvalidOperationException($"Broken feature flag is ON.");
+                }
+            }
+
+            if (int.TryParse(_configuration[AddedDelayConfigKey], out int addedDelay) && addedDelay > 0)
+            {
+                log.LogInformation($"{AddedDelayConfigKey}: {addedDelay}");
+                await Task.Delay(addedDelay);
+            }
+
+            return null;
+
         }
 
     }
