@@ -20,7 +20,10 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <None Include="./payloads.json">
+        <None Include="./certificate_payloads.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Include="./refresh_payloads.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
