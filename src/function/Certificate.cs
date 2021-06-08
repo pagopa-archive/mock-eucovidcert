@@ -76,9 +76,9 @@ namespace DGC.Function
             string auth_code = data?.auth_code;
             string fiscal_code = data?.fiscal_code;
 
-            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
+            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\certificate_payloads.json");
             var payloadsJson = File.ReadAllText(path);
-            var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
+            var payloads = JsonConvert.DeserializeObject<CertificatePayloads>(payloadsJson);
             var random = new Random(DateTime.Now.Second);
             var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
 
@@ -120,9 +120,9 @@ namespace DGC.Function
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             string fiscal_code = data?.fiscal_code;
 
-            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\payloads.json");
+            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\refresh_payloads.json");
             var payloadsJson = File.ReadAllText(path);
-            var payloads = JsonConvert.DeserializeObject<Payloads>(payloadsJson);
+            var payloads = JsonConvert.DeserializeObject<RefreshPayloads>(payloadsJson);
             var random = new Random(DateTime.Now.Second);
             var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
 

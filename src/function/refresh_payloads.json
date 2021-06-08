@@ -1,0 +1,34 @@
+{
+  "payloads": [
+    {
+      "data": 1234567890,
+      "keyDuplicate": "qwertyuiop1",
+      "spanID": "asdfghjkl1",
+      "traceID": "zxcvbnm1"
+    },
+    {
+      "data": 9876543210,
+      "keyDuplicate": "qwertyuiop2",
+      "spanID": "asdfghjkl2",
+      "traceID": "zxcvbnm2"
+    },
+    {
+      "error": {
+        "code": 1,
+        "message": "not found"
+      },
+      "keyDuplicate": "qwertyuiop3",
+      "spanID": "asdfghjkl3",
+      "traceID": "zxcvbnm3"
+    },
+    {
+      "error": {
+        "code": 2,
+        "message": "internal error"
+      },
+      "keyDuplicate": "qwertyuiop4",
+      "spanID": "asdfghjkl4",
+      "traceID": "zxcvbnm4"
+    }
+  ]
+}
