@@ -59,7 +59,7 @@ namespace DGC.Function
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string),
                                  Description = "The OK response")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/certificate/citizen/io/refresh")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v2/certificate/citizen/io/refresh")]
             HttpRequest req,
             ILogger log,
             ExecutionContext context)
