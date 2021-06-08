@@ -22,7 +22,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Extensions;
 
 namespace DGC.Function
 {
-    public class Certificate
+    public class Refresh
     {
 
         private const string AddedDelayConfigKey = "MockAPI:AddedDelay";
@@ -41,7 +41,7 @@ namespace DGC.Function
 
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
 
-        public Certificate(IFeatureManagerSnapshot featureManagerSnapshot,
+        public Refresh(IFeatureManagerSnapshot featureManagerSnapshot,
                            IConfiguration configuration,
                            IConfigurationRefresherProvider refresherProvider)
         {
@@ -50,35 +50,32 @@ namespace DGC.Function
             _configurationRefresher = refresherProvider.Refreshers.First();
         }
 
-        [FunctionName("Certificate")]
-        [OpenApiOperation(operationId: "getCertificateByAutAndCF")]
+        [FunctionName("Refresh")]
+        [OpenApiOperation(operationId: "managePreviousCertificates")]
         [OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code",
                          In = OpenApiSecurityLocationType.Query)]
-        [OpenApiParameter(name: "authCodeSHA256", Required = true, Type = typeof(string),
-                          Description = "The **auth_code** parameter")]
         [OpenApiParameter(name: "cfSHA256", Required = true, Type = typeof(string),
                           Description = "The **fiscal_code** parameter")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string),
                                  Description = "The OK response")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/certificate/citizen/io")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/certificate/citizen/io/refresh")]
             HttpRequest req,
             ILogger log,
             ExecutionContext context)
         {
-            log.LogInformation("C# HTTP trigger function processed Certificate/getCertificateByAutAndCF/Run");
+            log.LogInformation("C# HTTP trigger function processed Refresh/managePreviousCertificates/Run");
 
             var errorMessage = await Init(req, log);
             if (!errorMessage.IsNullOrWhiteSpace()) return new BadRequestObjectResult(errorMessage);
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            string auth_code = data?.auth_code;
             string fiscal_code = data?.fiscal_code;
 
-            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\certificate_payloads.json");
+            var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\refresh_payloads.json");
             var payloadsJson = File.ReadAllText(path);
-            var payloads = JsonConvert.DeserializeObject<CertificatePayloads>(payloadsJson);
+            var payloads = JsonConvert.DeserializeObject<RefreshPayloads>(payloadsJson);
             var random = new Random(DateTime.Now.Second);
             var responseMessage = payloads.PayloadList[random.Next(0, payloads.PayloadList.Count - 1)];
 
@@ -94,7 +91,6 @@ namespace DGC.Function
             }
 
             return response;
-
         }
 
         private async Task<string> Init(HttpRequest req,
