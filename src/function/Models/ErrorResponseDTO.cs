@@ -6,7 +6,7 @@ namespace DGC.Models
     {
 
         [JsonProperty("code")]
-        public string code { get; set; }
+        public int code { get; set; }
 
         [JsonProperty("message")]
         public string message { get; set; }
